@@ -179,3 +179,124 @@ function adminDashboard() {
     })
     .catch(error => console.log('error', error));
 }
+
+function topThree(){
+    const getStudent = document.querySelector(`.allstudent`)
+    const getToken = localStorage.getItem("admin");
+    const myHeader = new Headers();
+    myHeader.append("Authorization", `Bearer ${getToken}`);
+
+    const dashMethod = {
+        method: 'GET',
+        headers: myHeader
+    }
+
+    let data = [];
+
+    const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/top_three_students";
+
+
+    fetch(url, dashMethod)
+    .then(response => response.json())
+    .then(result => {console.log(result)
+        if (result.length === 0){
+            getStudent.innerHTML = "No Record Found"
+        }
+        else {
+            result.map((item) => {
+                data += `
+                <div class="search-card">
+                    <div class="d-flex justify-content-between">
+                        <p>Name:</p>
+                        <p>${item.name}</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <p>Email:</p>
+                        <p>${item.email.slice(0, 18)}</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <p>Phone Number:</p>
+                        <p>${item.phone_number}</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <p>Position:</p>
+                        <p>${item.position}</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <p>Total Score:</p>
+                        <p>${item.total_score}</p>
+                    </div>
+                </div>
+                `
+
+                getStudent.innerHTML = data;
+            })
+        }
+    })
+
+
+    .catch(error => console.log('error', error));
+}
+
+function studentModal(event){
+    event.preventDefault();
+
+    const getModal = document.getElementById("dash-modal")
+    getModal.style.display = "block"
+
+    topThree();
+}
+
+function closeDashModal(){
+    const getModal = document.getElementById("dash-modal")
+    getModal.style.display = "none"
+}
+
+
+function getTable(){
+    const tableId = document.getElementById(`table-id`)
+    const getToken = localStorage.getItem("admin");
+    const myHeader = new Headers();
+    myHeader.append("Authorization", `Bearer ${getToken}`);
+
+    const dashMethod = {
+        method: 'GET',
+        headers: myHeader
+    }
+
+    let data = [];
+
+    const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/get_all_students";
+
+
+    fetch(url, dashMethod)
+    .then(response => response.json())
+    .then(result => {console.log(result)
+        if (result.length === 0){
+            tableId.innerHTML = "No Record Found"
+        }
+        else {
+            result.map((item) => {
+                data += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.email}</td>
+                    <td>${item.phone_number}</td>
+                    <td>${item.total_score}</td>
+                    <td>${item.position}</td>
+                </tr>
+                `
+
+                tableId.innerHTML = data;
+            })
+        }            
+
+    })
+
+
+    .catch(error => console.log('error', error));
+}
