@@ -300,3 +300,627 @@ function getTable(){
 
     .catch(error => console.log('error', error));
 }
+
+function createCategory(event) {
+    event.preventDefault();
+
+    const getSpin = document.querySelector(".spin");
+    getSpin.style.display = "inline-block";
+
+    const getCatName = document.getElementById("cat").value;
+    const getCatImg = document.getElementById("imcat").files[0];
+
+    if (getCatName === "" || getCatImg === "") {
+        Swal.fire({
+            icon: 'info',
+            text: 'All fields are required!',
+            confirmButtonColor: '#2D85DE'
+        })
+
+        getSpin.style.display = "none";
+    }
+
+    else {
+        const myData = new FormData();
+        myData.append("name", getCatName);
+        myData.append("image", getCatImg);
+
+        const getToken = localStorage.getItem("admin");
+        const myHeader = new Headers();
+        myHeader.append("Authorization", `Bearer ${getToken}`);
+
+        const catMethod = {
+            method: 'POST',
+            headers: myHeader,
+            body: myData
+        };
+
+        const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/create_category";
+
+        fetch(url, catMethod)
+        .then(response => response.json())
+        .then(result => {
+            console.log(result)
+            if (result.status === "success") {
+                Swal.fire({
+                    icon: 'success',
+                    text: `${result.message}`,
+                    confirmButtonColor: '#2D85DE'
+                })
+
+                getCatList();
+
+                setTimeout(() => {
+                    location.reload()
+                }, 3000)
+            }
+            else {
+                Swal.fire({
+                    icon: 'info',
+                    text: `${result.message}`,
+                    confirmButtonColor: '#2D85DE'
+                })
+                getSpin.style.display = "none";
+            }
+
+        })
+        .catch(error => console.log('error', error));
+        
+    }
+}
+
+function getCatList(){
+    const scroll = document.querySelector(`.scroll-object`)
+    const getToken = localStorage.getItem("admin");
+    const myHeader = new Headers();
+    myHeader.append("Authorization", `Bearer ${getToken}`);
+
+    const catMethod = {
+        method: "GET",
+        headers: myHeader,
+    };
+
+    let data = [];
+
+    const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/category_list";
+
+    fetch(url, catMethod)
+    .then(response => response.json())
+    .then(result => {
+        console.log(result)
+        if (result.length === 0){
+            scroll.innerHTML = "No categories"
+        }
+        else {
+            result.map((item) =>{
+                data += `
+                <div class="search-card">
+                    <a href="details.html?category_name=${item.name}&category_id=${item.id}"><img src="${item.image}" alt="${item.name}"></a>   
+                    <p>${item.name}</p>
+                    <div class="text-right">
+                        <button class="update-button" onclick="showModal(${item.id})">Update</button>
+                        <button class="delete-button" onclick="delCat(${item.id})">Delete</button>
+                    </div>
+                </div>
+                `
+                scroll.innerHTML = data;
+            })
+        }
+    })
+    .catch(error => console.log('error', error));
+}
+
+function delCat(id){
+    const getToken = localStorage.getItem("admin");
+    const myHeader = new Headers();
+    myHeader.append("Authorization", `Bearer ${getToken}`);
+
+    const catMethod = {
+        method: 'GET',
+        headers: myHeader,
+    };
+
+    const url = `https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/delete_category/${id}`;
+    fetch(url, catMethod)
+    .then(response => response.json())
+    .then(result => {
+        console.log(result)
+        if(result.status === "success" ){
+            Swal.fire({
+                icon: `${result.status}`,
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+
+            setTimeout(() => {
+                location.reload();
+            }, 5000)
+        }
+
+        else{
+            Swal.fire({
+                icon: 'info',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+        }
+        
+    })
+    .catch(error => console.log('error', error));
+    
+}
+
+
+function showModal(id) {
+    const upName = document.getElementById("updateName");
+    const modal = document.getElementById("my-modal3");
+
+    localStorage.setItem("upId", id)
+
+    const getToken = localStorage.getItem("admin");
+    const myHeader = new Headers();
+    myHeader.append("Authorization", `Bearer ${getToken}`);
+
+    const catMethod = {
+        method: 'GET',
+        headers: myHeader,
+    };
+
+    const url = `https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/get_details?category_id=${id}`;
+    fetch(url, catMethod)
+    .then(response => response.json())
+    .then(result => {
+        console.log(result)
+        upName.setAttribute("value", `${result.name}`);
+        modal.style.display = "block";
+    })
+    .catch(error => console.log('error', error));
+}
+
+function closeModal3() {
+    const modal = document.getElementById("my-modal3");
+    modal.style.display = "none"
+}
+
+function updateCategory(event) {
+    event.preventDefault();
+
+    const getId = localStorage.getItem("upId");
+
+    const getSpin = document.querySelector(".spin2");
+    getSpin.style.display = "inline-block";
+
+    const getCatName = document.getElementById("updateName").value;
+    const getCatImg = document.getElementById("updateImage").files[0];
+
+    if (getCatName === "" || getCatImg === "") {
+        Swal.fire({
+            icon: 'info',
+            text: 'All fields are required!',
+            confirmButtonColor: '#2D85DE'
+        })
+
+        getSpin.style.display = "none";
+    }
+
+    else {
+        const myData = new FormData();
+        myData.append("name", getCatName);
+        myData.append("image", getCatImg);
+        myData.append("category_id", getId);
+
+        const getToken = localStorage.getItem("admin");
+        const myHeader = new Headers();
+        myHeader.append("Authorization", `Bearer ${getToken}`);
+
+        const catMethod = {
+            method: 'POST',
+            headers: myHeader,
+            body: myData
+        };
+
+        const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/update_category";
+
+        fetch(url, catMethod)
+        .then(response => response.json())
+        .then(result => {
+            console.log(result)
+            if (result.status === "success") {
+                Swal.fire({
+                    icon: `${result.status}`,
+                    text: `${result.message}`,
+                    confirmButtonColor: '#2D85DE'
+                })
+
+                setTimeout(() => {
+                    location.reload();
+                }, 3000)
+            }
+            else {
+                Swal.fire({
+                    icon: `${result.status}`,
+                    text: `${result.message}`,
+                    confirmButtonColor: '#2D85DE'
+                })
+                getSpin.style.display = "none";
+            }
+        })
+        .catch(error => console.log('error', error))
+    }
+}
+
+function getParameter(){
+    const myParams = new URLSearchParams(window.location.search);
+    const getName = myParams.get("category_name");
+    const det = document.querySelector(".det");
+    det.innerHTML =  getName
+
+}
+
+function subCategory(event){
+    event.preventDefault();
+    const myParamsId = new URLSearchParams(window.location.search);
+    const getId = myParamsId.get("category_id");
+
+    const getSpin = document.querySelector(".spin");
+    getSpin.style.display = "inline-block";
+
+    const getCatName = document.getElementById("subCatName").value;
+    const getCatImg = document.getElementById("subCatImg").files[0];
+
+    if (getCatName === "" || getCatImg === "") {
+        Swal.fire({
+            icon: 'info',
+            text: 'All fields are required!',
+            confirmButtonColor: '#2D85DE'
+        })
+
+        getSpin.style.display = "none";
+    }
+
+    else{
+        const myData = new FormData();
+        myData.append("name", getCatName);
+        myData.append("image", getCatImg);
+        myData.append("category_id", getId);
+
+        const getToken = localStorage.getItem("admin");
+        const myHeader = new Headers();
+        myHeader.append("Authorization", `Bearer ${getToken}`);
+
+        const catMethod = {
+            method: 'POST',
+            headers: myHeader,
+            body: myData
+        };
+
+        const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/create_subcategory";
+
+        fetch(url, catMethod)
+        .then(response => response.json())
+        .then(result => {
+            console.log(result)
+            if (result.status === "success") {
+                Swal.fire({
+                    icon: 'success',
+                    text: `${result.message}`,
+                    confirmButtonColor: '#2D85DE'
+                })
+
+                getCatList();
+
+                setTimeout(() => {
+                    location.reload()
+                }, 3000)
+                getSubCatList()
+            }
+
+            else {
+                Swal.fire({
+                    icon: `${result.status}`,
+                    text: `${result.message}`,
+                    confirmButtonColor: '#2D85DE'
+                })
+                getSpin.style.display = "none";
+            }
+        })
+        .catch(error => console.log('error', error));
+    }
+}
+
+function getSubCatList() {
+    const myParamId = new URLSearchParams(window.location.search);
+    const getId = myParamId.get("category_id");
+    const scroll = document.querySelector(".row");
+    const getToken = localStorage.getItem("admin");
+    const myHeader = new Headers();
+    myHeader.append("Authorization", `Bearer ${getToken}`);
+
+    const catMethod = {
+        method: 'GET',
+        headers: myHeader,
+    };
+
+    let data = [];
+
+    const url = `https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/category_details/${getId}`;
+
+    fetch(url, catMethod)
+    .then(response => response.json())
+    .then(result => {
+        console.log(result)
+        if (result.length === 0) {
+            scroll.innerHTML = "No sub categories found"
+        }
+        else {
+            result.map((item) => { 
+                data += `
+                <div class="col-sm-12 col-md-12 col-lg-4">
+                  <div class="search-card">
+                    <a href="details.html?category_name=${item.name}&category_id=${item.id}"><img src="${item.image}" alt="${item.name}"></a>
+                    <p>${item.name}</p>
+                    <div class="text-right">
+                        <button class="update-button" onclick="showModalSub(${item.id})">Update</button>
+                    </div>
+                  </div>
+                  </div>
+                `
+                scroll.innerHTML = data;
+            })
+        }
+    })
+    .catch(error => console.log('error', error));
+}
+
+function showModalSub(id){
+    const upSubName = document.getElementById("updateSubName");
+    const modal = document.getElementById("my-modal-mode");
+
+    localStorage.setItem("upSubId", id);
+
+
+    const getToken = localStorage.getItem("admin");
+    const myHeader = new Headers();
+    myHeader.append("Authorization", `Bearer ${getToken}`);
+
+    const catMethod = {
+        method: 'GET', 
+        headers: myHeader,
+    };
+
+    const url = `https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/get_details?subcategory_id=${id}`;
+    fetch(url, catMethod)
+    .then(response => response.json())
+    .then(result => {
+        console.log(result)
+        upSubName.setAttribute("value", `${result.name}`);
+        modal.style.display = "block"
+    })
+    .catch(error => console.log('error', error));
+}
+
+function closeModalMode(){
+    const modal = document.getElementById("my-modal-mode");
+    modal.style.display = "none"
+}
+
+function updateSubCategory(event){
+    event.preventDefault();
+
+    const getId = localStorage.getItem("upSubId");
+
+    const getSpinner = document.querySelector(".spin2")
+    getSpinner.style.display = "inline-block";
+
+    const getSubName = document.getElementById("updateSubName").value;
+    const getSubImg = document.getElementById("updateSubImage").files[0];
+
+    if(getSubName === "" || getSubImg === ""){
+        Swal.fire({
+            icon: 'info',
+            text: 'All fields are required!',
+            confirmButtonColor: '#2D85DE'
+        })
+
+        getSpinner.style.display = "none";
+    }
+
+    else{
+        const myData = new FormData();
+        myData.append("name", getSubName);
+        myData.append("image", getSubImg);
+        myData.append("subcategory_id", getId);
+
+        const getToken = localStorage.getItem("admin");
+        const myHeader = new Headers();
+        myHeader.append("Authorization", `Bearer ${getToken}`);
+
+        const catMethod = {
+            method: `POST`,
+            headers: myHeader,
+            body: myData
+        };
+
+        const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/update_subcategory";
+
+        fetch(url, catMethod)
+        .then(response => response.json())
+        .then(result => {
+            console.log(result)
+            if(result.status === "success") {
+                swal.fire({
+                    icon: `${result.status}`,
+                    text: `${result.message}`,
+                    confirmButtonColor: "#2D85DE"
+                })
+
+                setTimeout(() => {
+                    location.reload()
+                }, 3000)
+            }
+            else{
+                Swal.fire({
+                    icon: `info`,
+                    text: `${result.message}`,
+                    confirmButtonColor: '#2D85DE'
+                })
+                getSpinner.style.display = "none";
+            }
+        })
+        .catch(error => console.log('error', error));
+    }
+
+}
+
+function logout(){
+    swal.fire({
+        icon: 'success',
+        text: 'Logout successful',
+        confirmButtonColor: '#2D85DE'
+    })
+
+    setTimeout(() =>{
+        localStorage.clear();
+        location.href = "index.html"
+    },3000)
+}
+
+function upDateAdmin(event){
+    event.preventDefault();
+
+    const getSpin = document.querySelector(".spin");
+    getSpin.style.display = "block";
+
+    const getUpName = document.getElementById("updateName").value;
+    const getUpEmail = document.getElementById("updateEmail").value;
+
+    if (getUpName === "" || getUpEmail === ""){
+        Swal.fire({
+            icon: 'info', 
+            text: 'All fields are required',
+            confirmButtonColor: "#2d85de"
+        })
+        getSpin.style.display = 'none'
+    }
+    else {
+        const myData = new FormData();
+        myData.append("name", getUpName);
+        myData.append("email", getUpEmail);
+
+        const getToken = localStorage.getItem("admin");
+        const myHeader = new Headers();
+        myHeader.append("Authorization", `Bearer ${getToken}`);
+
+        const catMethod = {
+            method: 'POST',
+            headers: myHeader,
+            body: myData
+        }
+
+        const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/admin_update_profile";
+
+        fetch(url, catMethod)
+        .then(response => response.json())
+        .then(result => {
+            console.log(result)
+            if (result.status === "success"){
+                Swal.fire({
+                    icon: `${result.status}`,
+                    text: `${result.message}`,
+                    confirmButtonColor: "#2D85DE"
+                })
+
+                setTimeout(() => {
+                    localStorage.clear();
+                    location.href = "index.html"
+                }, 3000)
+            }
+            else{
+                Swal.fire({
+                    icon: 'info',
+                    text: 'Update Failed',
+                    confirmButtonColor: "#2D85DE"
+                })
+                getSpin.style.display = 'none'
+            }
+
+        })
+        .catch(error => console.log('error', error));
+    }
+}
+
+function upDatePassword(event){
+    event.preventDefault();
+
+    const getSpin = document.querySelector(".spin2");
+    getSpin.style.display = "inline-block";
+
+    const upPassEmail = document.getElementById("updatePassEmail").value;
+    const upPass = document.getElementById("updatePassword").value;
+    const confirmPass = document.getElementById("confirmPassword").value;
+
+    if (upPassEmail === "" || upPass === "" || confirmPass === ""){
+        Swal.fire({
+            icon: 'info',
+            text: 'All field required',
+            confirmButtonColor: "#2d85de"
+        })
+        getSpin.style.display = "none"
+    }
+    if (confirmPass !== upPass){
+        Swal.fire({
+            icon: 'info',
+            text: 'Password do not match',
+            confirmButtonColor: "#2d85de"
+        })
+        getSpin.style.display = "none"
+    }
+
+    else{
+        const myData = new FormData();
+        myData.append("email", upPassEmail);
+        myData.append("password", upPass);
+        myData.append("password_confirmation", confirmPass);
+
+        const getToken = localStorage.getItem("admin");
+        const myHeader = new Headers();
+        myHeader.append("Authorization", `Bearer ${getToken}`);
+
+        const myMethod = {
+            method: 'POST',
+            headers: myHeader,
+            body: myData
+        }
+        const url = "https://cyrilyoruba.juadebgabriel.com/yorubalearning/api/admin/admin_update_password";
+
+        fetch(url, myMethod)
+        .then(response => response.json())
+        .then(result => {
+            console.log(result)
+            if (result.status === "success"){
+                Swal.fire({
+                    icon: `${result.status}`,
+                    text: `${result.message}`,
+                    confirmButtonColor: "#2D85DE"
+                })
+
+                setTimeout(() => {
+                    localStorage.clear();
+                    location.href = "index.html"
+                }, 3000);
+            }
+
+            else {
+                Swal.fire({
+                    icon: 'info',
+                    text: `${result.message.password}`,
+                    confirmButtonColor: '#2D85DE'
+                })
+                getSpin.style.display = 'none'
+            }
+        })
+        .catch(error => console.log('error', error));
+    }
+}
+
+
